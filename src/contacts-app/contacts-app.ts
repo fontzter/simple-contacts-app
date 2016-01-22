@@ -1,7 +1,8 @@
-import {Component} from 'angular2/core';
+import {Component, ChangeDetectionStrategy} from 'angular2/core';
 import {ContactList} from './components/contact-list';
 import {ContactDetails} from './components/contact-details';
 import {ContactsService} from './services/contacts-service';
+import {Store} from '@ngrx/store';
 
 @Component({
     selector: 'contacts-app',
@@ -29,25 +30,25 @@ import {ContactsService} from './services/contacts-service';
 <main class="app">
 
   <contact-list
-    *ngIf="contactService.selectedContact"
-    [contactGroups]="contactService.sortedContactGroups"
-    [selectedContact]="contactService.selectedContact"
-    (select)="contactService.loadContact($event.id)"
+    [contactGroups]="contactService.contactGroups | async"
+    (select)="contactService.selectContact($event)"
   ></contact-list>
 
   <contact-details
-    *ngIf="contactService.selectedContact"
-    [contact]="contactService.selectedContact"
+    *ngIf="contactService.selectedContact | async"
+    [contact]="contactService.selectedContact | async"
     (submit)="contactService.putContact($event)"
     >
   </contact-details>
 
 </main>
-`
+`,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ContactsApp{
   constructor(public contactService:ContactsService){
     contactService.loadContacts(true);
+    contactService.contactGroups.subscribe(v => console.log(v))
   }
 }
 

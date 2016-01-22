@@ -1,6 +1,7 @@
 import {Injectable} from 'angular2/core';
 import {Http, Headers} from 'angular2/http';
 import 'rxjs/add/operator/map';
+import {Store} from '@ngrx/store'
 
 
 @Injectable()
@@ -8,25 +9,31 @@ export class ContactsService {
   selectedContact;
   contactGroups;
   sortedContactGroups;
+  contacts;
 
-  constructor(public http:Http){}
+  constructor(public http:Http, private store: Store<any>){
+    this.contacts = store.select('contacts');
+    this.contactGroups = this.contacts.map(contacts => this.groupContacts(contacts));
+    this.selectedContact = store.select('selectedContact')
+      .combineLatest(this.contacts, (id, contacts ) => {
+        return contacts.find(contact => contact.id === id);
+      });
+  }
 
   loadContacts(firstLoad) {
-    const callback = firstLoad
-      ? this.firstSetupContacts.bind(this)
-      : this.setupContacts.bind(this);
-
     this.http
       .get('http://localhost:3000/people')
       .map((res)=> res.json())
-      .subscribe(callback);
+      .subscribe(payload => this.store.dispatch({type: 'POPULATE_CONTACTS', payload}));
   }
 
-  loadContact(id) {
-    this.http
-      .get('http://localhost:3000/people/' + id)
-      .map((res)=> res.json())
-      .subscribe(this.setupContact.bind(this));
+  selectContact(id) {
+    console.log(id)
+    this.store.dispatch({type: 'SELECT_CONTACT', payload: id});
+    // this.http
+    //   .get('http://localhost:3000/people/' + id)
+    //   .map((res)=> res.json())
+    //   //.subscribe(this.setupContact.bind(this));
   }
 
   refreshContacts(contact){
@@ -46,24 +53,6 @@ export class ContactsService {
         })
       .map(res => res.json())
       .subscribe(this.refreshContacts.bind(this));
-  }
-
-  setupContact(contact){
-    this.selectedContact = contact;
-  }
-
-  firstSetupContacts(contacts) {
-    this.contactGroups = this.groupContacts(contacts);
-    this.sortedContactGroups = this.sortContactGroups(this.contactGroups);
-
-    const firstContact = this.sortedContactGroups[0].contacts[0];
-
-    this.loadContact(firstContact.id);
-  }
-
-  setupContacts(contacts) {
-    this.contactGroups = this.groupContacts(contacts);
-    this.sortedContactGroups = this.sortContactGroups(this.contactGroups);
   }
 
   sortContactGroups(contactGroups) {

@@ -25,8 +25,8 @@ import {Component, Input, Output, EventEmitter} from 'angular2/core';
         *ngFor="#contact of contactGroup.contacts"
         type="button"
         class="list-group-item"
-        (click)="select.emit(contact)"
-        [ngClass]="{selected:contact.id === selectedContact.id}"
+        (click)="select.emit(contact.id)"
+        [ngClass]="{selected:contact.id === selectedContact?.id}"
       >{{contact.name.last}}, {{contact.name.first}}
       </button>
     </div>
@@ -38,6 +38,9 @@ export class ContactList {
   @Output() select = new EventEmitter();
   @Input() contactGroups;
   @Input() selectedContact;
+  ngOnChanges(){
+    console.log('group',this.contactGroups)
+  }
 }
 
 
