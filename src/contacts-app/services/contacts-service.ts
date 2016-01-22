@@ -28,19 +28,9 @@ export class ContactsService {
   }
 
   selectContact(id) {
-    console.log(id)
     this.store.dispatch({type: 'SELECT_CONTACT', payload: id});
-    // this.http
-    //   .get('http://localhost:3000/people/' + id)
-    //   .map((res)=> res.json())
-    //   //.subscribe(this.setupContact.bind(this));
   }
-
-  refreshContacts(contact){
-    this.loadContacts(false);
-    this.loadContact(contact.id);
-  }
-
+  
   putContact(contact){
     this.http
       .put(
@@ -52,7 +42,7 @@ export class ContactsService {
           })
         })
       .map(res => res.json())
-      .subscribe(this.refreshContacts.bind(this));
+      .subscribe(payload => this.store.dispatch({type: 'UPDATE_CONTACT', payload}));
   }
 
   sortContactGroups(contactGroups) {
